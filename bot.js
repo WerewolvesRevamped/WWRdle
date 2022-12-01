@@ -87,7 +87,7 @@ client.on('interactionCreate', async interaction => {
              if(guessDone.indexOf(interaction.member.id) >= 0) {
                 interaction.reply({ content: topRow + "\n" + previousGuesses[interaction.member.id].join("\n"), fetchReply: true });
             } else {
-                interaction.reply({ content:"You are not done guessing!\n" + topRow + "\n" + previousGuesses[interaction.member.id].join("\n"), fetchReply: true, ephemeral: true });
+                interaction.reply({ content:"You are not done guessing!\n" + (previousGuesses[interaction.member.id] ? topRow + "\n" + previousGuesses[interaction.member.id].join("\n") : ""), fetchReply: true, ephemeral: true });
             }
         break;
         case "change":
