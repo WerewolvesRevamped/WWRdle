@@ -84,10 +84,11 @@ client.on("ready", async () => {
     
     // load db state
     sqlSetup();
-    await sleep(1000);
+    await sleep(5000);
+    loadFromDB();
+    await sleep(5000);
     scheduledUpdateAnswer();
     setInterval(scheduledUpdateAnswer, 5 * 60 * 1000);
-    loadFromDB();
 });
 
 // Update WWRdle daily
@@ -99,6 +100,7 @@ function scheduledUpdateAnswer() {
     let curDate = d.getDate();
     if(curDate != lastDate && curHour == scheduledHour) {
         lastDate = curDate;
+        let oldAnswer = answerData[0];
         newAnswer = roleData[Math.floor(Math.random() * roleData.length)][0];
         let respo = updateAnswer(newAnswer);
         let guild = client.guilds.cache.get("584765921332297775");
@@ -109,7 +111,7 @@ function scheduledUpdateAnswer() {
             let defRand = getDateRand(2, 0);
             let selMode = "default";
             if(defRand === 1) {
-                let modes = ["slime", "slime", "hard", "shuffled", "color"];
+                let modes = ["slime", "slime", "hard", "shuffled", "color", "color"];
                 let modeRand = getDateRand(modes.length, 1);
                 selMode = modes[modeRand];
             }
@@ -118,7 +120,7 @@ function scheduledUpdateAnswer() {
             saveToDB();
             
             if(channel) {
-                let embed = { title: "WWRdle", description: `The WWRdle answer has been updated to a new random answer. ${modeMsg}`, color: 5490704 };
+                let embed = { title: "WWRdle", description: `The answer was: \`${oldAnswer}\`. The WWRdle answer has been updated to a new random answer. ${modeMsg}`, color: 5490704 };
                 channel.send({ embeds: [ embed ] });    
             }
         }
@@ -131,6 +133,7 @@ function setMode(mode) {
     switch(mode) {
         default:
         case "default":
+            maxGuesses = 5;
             return "";
         break;
         case "slime":
@@ -142,11 +145,14 @@ function setMode(mode) {
             return "Only four guesses today! 😈";
         break;
         case "color":
+            differentSquares = shuffleArray(differentSquares);
+            console.log("Colors", differentSquares);
             maxGuesses = 7;
             return "So colorful! 😌";
         break;
         case "shuffled":
             categoryOrder = shuffleArray(categoryOrder);
+            console.log("Shuffled", categoryOrder);
             for(let i = 0; i < categoryOrder.length; i++) {
                 categoryOrder[i][1] = i;
             }
@@ -266,14 +272,24 @@ function getEmoji(name) {
         case "greatercoyote": name = "werewolfplaceholder"; break;
         case "lessercoyote": name = "werewolfplaceholder"; break;
         case "howlingwolf": name = "werewolfplaceholder"; break;
-        case "roguewolf": name = "werewolfplaceholder"; break;
         case "originalthething": name = "thething"; break;
+        case "lamb": name = "flockteam"; break;
+        case "apocalypticlamb": name = "flockteam"; break;
+        case "originaldevil": name = "devil"; break;
+        
     }
     let emoji = client.emojis.cache.find(el => el.name.toLowerCase() === name);
     //console.log(name, emoji);
     if(emoji) emoji = `<:${emoji.name}:${emoji.id}> `;
     else emoji = "❓ ";
     return emoji;
+}
+
+let differentSquares = ["🔳","⬜","🟪","🔲","🟨","🟧","🟫","🟦","⬛","▫️"];
+
+function getDifferentSquares(index, id) {
+    let ind = (index + (+id[0]) + (+id[1])) % differentSquares.length;
+    return differentSquares[ind];
 }
 
 /* New Slash Command */
@@ -298,10 +314,10 @@ client.on('interactionCreate', async interaction => {
              let fmk1 = getRandomRole();
              let fmk2 = getRandomRole();
              let fmk3 = getRandomRole();
-             var fmkBlacklist = ["Child","Cult Acolyte","Wolf Cub","Assistant","Wild Child","Last Living Baby Wolf","Riding Hood"];
+             var fmkBlacklist = ["Child","Cult Acolyte","Wolf Cub","Assistant","Wild Child","Last Living Baby Wolf","Riding Hood","Cat","Dog"];
              while(fmkBlacklist.includes(fmk1)) { fmk1 = getRandomRole(); fmkBlacklist.push(fmk1); }
-             while(fmkBlacklist.includes(fmk2)) { fmk2 = getRandomRole(); fmkBlacklist.push(fmk2); }
-             while(fmkBlacklist.includes(fmk3)) fmk3 = getRandomRole();
+             while(fmkBlacklist.includes(fmk2) || fmk1 === fmk2) { fmk2 = getRandomRole(); fmkBlacklist.push(fmk2); }
+             while(fmkBlacklist.includes(fmk3)|| fmk1 === fmk3 || fmk2 === fmk3) fmk3 = getRandomRole();
              
              let fmk1e = getEmoji(fmk1);
              let fmk2e = getEmoji(fmk2);
@@ -412,41 +428,41 @@ client.on('interactionCreate', async interaction => {
                 
                 let wwrdle1 = ""
                 if(guessedRoleData[1] == answerData[1]) {
-                    wwrdle1 = curMode != "color" ? "🟩" : "🔳";
+                    wwrdle1 = curMode != "color" ? "🟩" : getDifferentSquares(0, interaction.member.id);
                     wwrCounter++;
                 } else {
-                    wwrdle1 = curMode != "color" ? "🟥" : "⬜";
+                    wwrdle1 = curMode != "color" ? "🟥" : getDifferentSquares(1, interaction.member.id);
                 }
                 let wwrdle2 = "";
                 if(guessedRoleData[2] == answerData[2]) {
-                    wwrdle2 = curMode != "color" ? "🟩" : "🟪";
+                    wwrdle2 = curMode != "color" ? "🟩" : getDifferentSquares(2, interaction.member.id);
                     wwrCounter++;
                 } else {
                     let guessIndex = versionOrder.indexOf(guessedRoleData[2]);
                     let answerIndex = versionOrder.indexOf(answerData[2]);
-                    if(answerIndex > guessIndex) wwrdle2 = curMode != "color" ? "🔼" : "🔲 ";
-                    else wwrdle2 = curMode != "color" ? "🔽" : "🟨";
+                    if(answerIndex > guessIndex) wwrdle2 = curMode != "color" ? "🔼" : getDifferentSquares(3, interaction.member.id);
+                    else wwrdle2 = curMode != "color" ? "🔽" : getDifferentSquares(4, interaction.member.id);
                 }
                 let wwrdle3 = "";
                 if(guessedRoleData[3] == answerData[3]) {
-                    wwrdle3 = curMode != "color" ? "🟩" : "🟧";
+                    wwrdle3 = curMode != "color" ? "🟩" : getDifferentSquares(5, interaction.member.id);
                     wwrCounter++;
                 } else {
                     let guessIndex = categoryOrder.filter(el => el[0] == guessedRoleData[3])[0][1];
                     let answerIndex = categoryOrder.filter(el => el[0] == answerData[3])[0][1];
-                    if(answerIndex > guessIndex) wwrdle3 = curMode != "color" ? "🔼" : "🟨";
-                    else if(answerIndex < guessIndex) wwrdle3 = curMode != "color" ? "🔽" : "🔲 ";
-                    else wwrdle3 = curMode != "color" ? "🟨" : "🟫";
+                    if(answerIndex > guessIndex) wwrdle3 = curMode != "color" ? "🔼" : getDifferentSquares(4, interaction.member.id);
+                    else if(answerIndex < guessIndex) wwrdle3 = curMode != "color" ? "🔽" : getDifferentSquares(3, interaction.member.id);
+                    else wwrdle3 = curMode != "color" ? "🟨" : getDifferentSquares(6, interaction.member.id);
                 }
                 let wwrdle4 = ""
                 if(guessedRoleData[4] == answerData[4]) {
-                    wwrdle4 = curMode != "color" ? "🟩" : "🟦";
+                    wwrdle4 = curMode != "color" ? "🟩" : getDifferentSquares(7, interaction.member.id);
                     wwrCounter++;
                 } else {
-                    wwrdle4 = curMode != "color" ? "🟥" : "⬛";
+                    wwrdle4 = curMode != "color" ? "🟥" : getDifferentSquares(8, interaction.member.id);
                 }
                 
-                let wwrdle5 = curMode != "color" ? "⬛" : "▫️";
+                let wwrdle5 = curMode != "color" ? "⬛" : getDifferentSquares(9, interaction.member.id);
                 
                 if(wwrCounter == 4) {
                     fourCorrect.push(interaction.member.id);
@@ -473,7 +489,7 @@ client.on('interactionCreate', async interaction => {
                     let r5 = getDateRand(10, 6 + 7 * guessCount) / 10;
                     
                     // ensure at least one unslimed field
-                    if(r1 > 0.20 && r2 > 0.20 && r3 > 0.20 && r4 > 0.20) {
+                    if(r1 > 0.33 && r2 > 0.33 && r3 > 0.33 && r4 > 0.33) {
                         let wcase = getDateRand(4, 6 + 7 * guessCount);
                         switch(wcase) {
                             case 0: r1 = 0; break;
@@ -484,7 +500,7 @@ client.on('interactionCreate', async interaction => {
                     }
                     
                     // ensure at least one slimed field
-                    if(r1 <= 0.20 && r2 <= 0.20 && r3 <= 0.20 && r4 <= 0.20) {
+                    if(r1 <= 0.33 && r2 <= 0.33 && r3 <= 0.33 && r4 <= 0.33) {
                         let wcase = getDateRand(4, 7 + 7 * guessCount);
                         switch(wcase) {
                             case 0: r1 = 1; break;
@@ -495,11 +511,11 @@ client.on('interactionCreate', async interaction => {
                     }
                     
                     if(guessedRoleData[0] != answerData[0]) {
-                        if(r1 > 0.20) wwrdle1 = "<:slimeball:1162861175231479890>";
-                        if(r2 > 0.20) wwrdle2 = "<:slimeball:1162861175231479890>";
-                        if(r3 > 0.20) wwrdle3 = "<:slimeball:1162861175231479890>";
-                        if(r4 > 0.20) wwrdle4 = "<:slimeball:1162861175231479890>";
-                        if(r5 > 0.20) wwrdle5 = "<:slimeball:1162861175231479890>";
+                        if(r1 > 0.33) wwrdle1 = "<:slimeball:1162861175231479890>";
+                        if(r2 > 0.33) wwrdle2 = "<:slimeball:1162861175231479890>";
+                        if(r3 > 0.33) wwrdle3 = "<:slimeball:1162861175231479890>";
+                        if(r4 > 0.33) wwrdle4 = "<:slimeball:1162861175231479890>";
+                        if(r5 > 0.33) wwrdle5 = "<:slimeball:1162861175231479890>";
                     }
                 }
                 
@@ -683,7 +699,7 @@ function getDayOfYear() {
 
 function shuffleArray(array) {
     for(var i = array.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
+        var j = Math.floor((getDateRand(100, 20) / 100) * (i + 1));
         var temp = array[i];
         array[i] = array[j];
         array[j] = temp;
