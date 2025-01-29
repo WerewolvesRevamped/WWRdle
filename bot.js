@@ -111,7 +111,7 @@ function scheduledUpdateAnswer() {
             let defRand = getDateRand(2, 0);
             let selMode = "default";
             if(defRand === 1) {
-                let modes = ["slime", "slime", "hard", "shuffled", "color", "color"];
+                let modes = ["slime", "slime", "hard", "shuffled", "color", "color", "hotcold", "hotcold", "hotcold_slime"];
                 let modeRand = getDateRand(modes.length, 1);
                 selMode = modes[modeRand];
             }
@@ -149,6 +149,13 @@ function setMode(mode) {
             console.log("Colors", differentSquares);
             maxGuesses = 7;
             return "So colorful! 😌";
+        break;
+        case "hotcold":
+            return "Hot and cold! 🔥☀️❄️⛄☃️🧊";
+        break;
+        case "hotcold_slime":
+            maxGuesses = 10;
+            return "PAIN AND SUFFERING.";
         break;
         case "shuffled":
             categoryOrder = shuffleArray(categoryOrder);
@@ -464,6 +471,58 @@ client.on('interactionCreate', async interaction => {
                 
                 let wwrdle5 = curMode != "color" ? "⬛" : getDifferentSquares(9, interaction.member.id);
                 
+                if(curMode === "hotcold" || curMode === "hotcold_slime") {
+                    wwrCounter = 0;
+                    // 1: team
+                    let alignmentOrder = ["Townsfolk", "Werewolves", "Solo", "Unaligned", "Extra", "Joke"];
+                    let gAlign = alignmentOrder.indexOf(guessedRoleData[1]);
+                    let aAlign = alignmentOrder.indexOf(answerData[1]);
+                    let diffAlign = Math.abs(gAlign - aAlign);
+                    if(diffAlign === 0) {
+                        wwrdle1 = "🔥";
+                        wwrCounter++;
+                    }
+                    else if(diffAlign === 1) wwrdle1 = "☀️";
+                    else if(diffAlign === 2) wwrdle1 = "❄️";
+                    else wwrdle1 = "🧊";
+                    // 2: version
+                    let gVersion = versionOrder.indexOf(guessedRoleData[2]);
+                    let aVersion = versionOrder.indexOf(answerData[2]);
+                    let diffVersion = Math.abs(gVersion - aVersion);
+                    if(diffVersion === 0) {
+                        wwrdle2 = "🔥";
+                        wwrCounter++;
+                    }
+                    else if(diffVersion <= 3) wwrdle2 = "☀️";
+                    else if(diffVersion <= 6) wwrdle2 = "❄️";
+                    else if(diffVersion <= 9) wwrdle2 = "⛄";
+                    else if(diffVersion <= 12) wwrdle2 = "☃️";
+                    else wwrdle2 = "🧊";
+                    // 3: category
+                    let gCat = categoryOrder.filter(el => el[0] == guessedRoleData[3])[0][1];
+                    let aCat = categoryOrder.filter(el => el[0] == answerData[3])[0][1];
+                    let diffCat = Math.abs(gCat - aCat);
+                    if(diffCat === 0 && guessedRoleData[3] != answerData[3]) wwrdle3 = "⁉️";
+                    else if(diffCat === 0) {
+                        wwrdle3 = "🔥";
+                        wwrCounter++;
+                    }
+                    else if(diffCat === 1) wwrdle3 = "☀️";
+                    else if(diffCat === 2) wwrdle3 = "❄️";
+                    else wwrdle3 = "🧊";
+                    // 4: status
+                    let statusOrder = ["Default", "Limited", "Deleted"];
+                    let gStatus = statusOrder.indexOf(guessedRoleData[4]);
+                    let aStatus = statusOrder.indexOf(answerData[4]);
+                    let diffStatus = Math.abs(gStatus - aStatus);
+                    if(diffStatus === 0) {
+                        wwrdle4 = "🔥";
+                        wwrCounter++;
+                    }
+                    else if(diffStatus === 1) wwrdle4 = "❄️";
+                    else wwrdle4 = "🧊";
+                }
+                
                 if(wwrCounter == 4) {
                     fourCorrect.push(interaction.member.id);
                 }
@@ -474,12 +533,26 @@ client.on('interactionCreate', async interaction => {
                     if(answerGuess > charGuess) wwrdle5 = "▶️";
                     else if(answerGuess < charGuess) wwrdle5 = "◀️";
                     else if(guessedRoleData[0] != answerData[0]) wwrdle5 = "🟨";     
-                    else wwrdle5 = "🟩";     
+                    else wwrdle5 = "🟩"; 
+                    
+                    // 5: alphabet
+                    if(curMode === "hotcold" || curMode === "hotcold_slime") {
+                        let cGuess = charGuess.toLowerCase().charCodeAt(0) - 97;
+                        let aGuess = answerGuess.toLowerCase().charCodeAt(0) - 97;
+                        let alphaDiff = Math.abs(cGuess - aGuess);
+                        if(alphaDiff === 0) wwrdle5 = "⁉️";
+                        else if(alphaDiff <= 3) wwrdle5 = "☀️";
+                        else if(alphaDiff <= 6) wwrdle5 = "❄️";
+                        else if(alphaDiff <= 9) wwrdle2 = "⛄";
+                        else if(alphaDiff <= 12) wwrdle2 = "☃️";
+                        else wwrdle5 = "🧊";
+                        if(guessedRoleData[0] === answerData[0]) wwrdle5 = "🔥";     
+                    }
                 } 
                 
                 
                 /** SLIME MODE **/
-                if(curMode === "slime") {
+                if(curMode === "slime" || curMode === "hotcold_slime") {
                     let guessCount = (previousGuesses[interaction.member.id] ? previousGuesses[interaction.member.id].length : 0);
                     
                     let r1 = getDateRand(10, 2 + 7 * guessCount) / 10;
