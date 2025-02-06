@@ -129,6 +129,7 @@ function scheduledUpdateAnswer() {
 
 function setMode(mode) {
     curMode = mode;
+    categoryOrder = categoryOrderCopy;
     console.log(`Set mode as ${mode}.`);
     switch(mode) {
         default:
@@ -172,7 +173,8 @@ const roleData = [["Town Elder","Townsfolk","old-2","Miscellaneous","Deleted"],[
 
 var maxGuesses = 5;
 var versionOrder = ["unadded","old-1","old-2","old-3","v0","mini-1","v1","v2","v3","v4","v5","v6","v7","v8","v9","v10","v11","v12","mini-2","v13","v14","v15","v16","mini-3","v17","v18","v19"];
-var categoryOrder = [["Elected",6],["Align",6],["Killing",5],["Group",4],["Investigative",3],["Power",2],["Miscellaneous",1]];
+var categoryOrder = [["Elected",7],["Align",6],["Killing",5],["Group",4],["Investigative",3],["Power",2],["Miscellaneous",1]];
+var categoryOrderCopy = JSON.parse(JSON.stringify(categoryOrder));
 
 var previousGuesses = {};
 var previousRoleGuesses = {};
@@ -315,7 +317,11 @@ client.on('interactionCreate', async interaction => {
         break;
         case "help":
             // Send pinging message
-            interaction.reply({ content: "__**General**__\nGuess a role with `/guess`. You get five guesses, try to find the WWRdle. View your current guesses with `/view` and share your final result with `/result`.\nA list of all roles and their version/category/status can be found in `/list`.\n\n__**Columns**__\n**<:Team:1047282015596200006> Column #1: Team**\nPossible Options: Townsfolk, Werewolves, Solo, Unaligned, Extra, Admin\nPossible Results: 🟥 / 🟩\n\n**🇻 Column #2: Version**\nPossible Options: unadded, old-1, old-2, old-3, v0, mini-1, v1-v12, mini-3, v13-v16 and mini-3 (from least to most recent)\nPossible Results:\n🟩 Correct\n🔼 WWRdle is more __recent__\n🔽 WWRdle is __older__\n\n**<:Category:1047282013020901527> Column #3: Category**\nPossible Options: Align/Elected > Killing> Group > Investigative > Power > Miscellaneous (from most to least powerful)\nPossible Results:\n🟩 Correct\n🔼 WWRdle is more __powerful__ \n🔽 WWRdle role is __weaker__\n🟨 Correct strength, wrong category (e.g. Align & Elected)\n\n**✨ Column #4: Status**\nPossible Options: Default, Limited, Deleted (Deleted includes Variant and MWR Roles)\nPossible Results: 🟥 / 🟩\n\n**🔤 Column #5: Alphabetical**\nOnly activates when first four columns are 🟩\nPossible Results:\n🔼 WWRdle starting letter is __further down__ the alphabet (higher value letter)\n🔽 WWRdle starting letter is __earlier__ in the alphabet (lower value letter)", ephemeral: true });
+            interaction.reply({ content: "__**General**__\nGuess a role with `/guess`. You get five guesses, try to find the WWRdle. View your current guesses with `/view` and share your final result with `/result`.\nA list of all roles and their version/category/status can be found in `/list`.\n\n__**Columns**__\n**<:Team:1047282015596200006> Column #1: Team**\nPossible Options: Townsfolk, Werewolves, Solo, Unaligned, Extra, Admin\nPossible Results: 🟥 / 🟩\n\n**🇻 Column #2: Version**\nPossible Options: unadded, old-1, old-2, old-3, v0, mini-1, v1-v12, mini-2, v13-v16, mini-3 and v17-v19 (from least to most recent)\nPossible Results:\n🟩 Correct\n🔼 WWRdle is more __recent__\n🔽 WWRdle is __older__\n\n**<:Category:1047282013020901527> Column #3: Category**\nPossible Options: Align/Elected > Killing> Group > Investigative > Power > Miscellaneous (from most to least powerful)\nPossible Results:\n🟩 Correct\n🔼 WWRdle is more __powerful__ \n🔽 WWRdle role is __weaker__\n🟨 Correct strength, wrong category (e.g. Align & Elected)\n\n**✨ Column #4: Status**\nPossible Options: Default, Limited, Deleted (Deleted includes Variant and MWR Roles)\nPossible Results: 🟥 / 🟩\n\n**🔤 Column #5: Alphabetical**\nOnly activates when first four columns are 🟩\nPossible Results:\n🔼 WWRdle starting letter is __further down__ the alphabet (higher value letter)\n🔽 WWRdle starting letter is __earlier__ in the alphabet (lower value letter)", ephemeral: true });
+        break;
+        case "info":
+            // Send pinging message
+            interaction.reply({ content: "**Version Order:** " + versionOrder.join(", ") + "\n**Category Order:** " + categoryOrder.map(el => el[0]).join(", "), ephemeral: true });
         break;
         case "fmk":
              let fmk1 = getRandomRole();
@@ -543,8 +549,8 @@ client.on('interactionCreate', async interaction => {
                         if(alphaDiff === 0) wwrdle5 = "⁉️";
                         else if(alphaDiff <= 3) wwrdle5 = "☀️";
                         else if(alphaDiff <= 6) wwrdle5 = "❄️";
-                        else if(alphaDiff <= 9) wwrdle2 = "⛄";
-                        else if(alphaDiff <= 12) wwrdle2 = "☃️";
+                        else if(alphaDiff <= 9) wwrdle5 = "⛄";
+                        else if(alphaDiff <= 12) wwrdle5 = "☃️";
                         else wwrdle5 = "🧊";
                         if(guessedRoleData[0] === answerData[0]) wwrdle5 = "🔥";     
                     }
@@ -639,6 +645,10 @@ function registerCommands() {
     client.application?.commands.create({
         name: 'help',
         description: 'Explains WWRdle.'
+    });
+    client.application?.commands.create({
+        name: 'info',
+        description: 'Lists short WWRdle info.'
     });
     client.application?.commands.create({
         name: 'result',
