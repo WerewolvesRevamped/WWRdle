@@ -152,6 +152,7 @@ function setMode(mode) {
             return "So colorful! 😌";
         break;
         case "hotcold":
+            maxGuesses = 5;
             return "Hot and cold! 🔥☀️❄️⛄☃️🧊";
         break;
         case "hotcold_slime":
@@ -159,6 +160,7 @@ function setMode(mode) {
             return "PAIN AND SUFFERING.";
         break;
         case "shuffled":
+            maxGuesses = 5;
             categoryOrder = shuffleArray(categoryOrder);
             console.log("Shuffled", categoryOrder);
             for(let i = 0; i < categoryOrder.length; i++) {
