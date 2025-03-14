@@ -482,7 +482,7 @@ client.on('interactionCreate', async interaction => {
                 if(curMode === "hotcold" || curMode === "hotcold_slime") {
                     wwrCounter = 0;
                     // 1: team
-                    let alignmentOrder = ["Townsfolk", "Werewolves", "Solo", "Unaligned", "Extra", "Joke"];
+                    let alignmentOrder = ["Townsfolk", "Werewolf", "Solo", "Unaligned", "Extra", "Joke"];
                     let gAlign = alignmentOrder.indexOf(guessedRoleData[1]);
                     let aAlign = alignmentOrder.indexOf(answerData[1]);
                     let diffAlign = Math.abs(gAlign - aAlign);
